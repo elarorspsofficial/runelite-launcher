@@ -17,7 +17,7 @@ jobs:
         key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-cache-
-    - run: choco install innosetup
+    - run: choco install innosetup --version 6.2.2
     - name: Set up JDK 11
       uses: actions/setup-java@v3
       with:
@@ -47,23 +47,8 @@ jobs:
       run: |
         cd detours/src
         nmake
-    - name: build dll x64
-      shell: cmd
-      run: |
-        cmake -S native -B native/build64 -A x64
-        cmake --build native/build64 --config Release
-    - name: build dll x86
-      shell: cmd
-      run: |
-        cmake -S native -B native/build32 -A Win32
-        cmake --build native/build32 --config Release
-    - name: build dll aarch64
-      shell: cmd
-      run: |
-        cmake -S native -B native/buildaarch64 -A ARM64
-        cmake --build native/buildaarch64 --config Release
     - name: build launcher
-      run: mvn verify -DskipTests -B
+      run: mvn verify -B
     - name: x64 installer
       shell: bash
       run: ./build-win64.sh
@@ -77,14 +62,18 @@ jobs:
       with:
         name: windows
         path: |
-          ZenyteSetup.exe
-          ZenyteSetup32.exe
-          ZenyteSetupAArch64.exe
+          RuneLiteSetup.exe
+          RuneLiteSetup32.exe
+          RuneLiteSetupAArch64.exe
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
     steps:
+    - run: sudo apt update
+    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v3
       with:
@@ -99,7 +88,7 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: build
-      run: mvn verify -DskipTests -B
+      run: mvn verify -B
     - name: linux-x64
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
@@ -107,19 +96,24 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: jar
-        path: target/Zenyte.jar
+        path: target/RuneLite.jar
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
         name: linux
         path: |
-          native-linux-x86_64/Zenyte.AppImage
-          native-linux-aarch64/Zenyte-aarch64.AppImage
+          RuneLite.AppImage
+          RuneLite-aarch64.AppImage
         if-no-files-found: error
   macos:
     runs-on: macos-11
     steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v3
       with:
@@ -134,9 +128,11 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: build
-      run: mvn verify -DskipTests -B
-    - run: git clone https://github.com/runelite/create-dmg
-    - run: |
+      run: mvn verify -B
+    - name: clone create-dmg
+      run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
+    - name: build create-dmg
+      run: |
         set -e
         cd create-dmg
         npm install
@@ -144,13 +140,22 @@ jobs:
         chmod +x create-dmg
     - run: echo create-dmg >> $GITHUB_PATH
     - name: macos-x64
-      run: ./build-osx-x64.sh
+      run: ./build-osx-x64.sh --build --dmg
     - name: macos-aarch64
-      run: ./build-osx-aarch64.sh
+      run: ./build-osx-aarch64.sh --build --dmg
+    # tar app to keep permissions correct
+    - name: tar app
+      run: tar -cf app.tar build/macos-x64/RuneLite.app build/macos-aarch64/RuneLite.app build-osx-x64.sh build-osx-aarch64.sh osx/signing.entitlements
     - uses: actions/upload-artifact@v3
       with:
-        name: macos
+        name: macos-dmg
         path: |
-          native-osx/Zenyte-x64.dmg
-          native-osx-aarch64/Zenyte-aarch64.dmg
+          RuneLite-x64.dmg
+          RuneLite-aarch64.dmg
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v3
+      with:
+        name: macos-app
+        path: |
+          app.tar
         if-no-files-found: error

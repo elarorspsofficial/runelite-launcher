@@ -121,7 +121,7 @@ class LauncherSettings
 			hardwareAccelerationMode = (HardwareAccelerationMode) options.valueOf("mode");
 		}
 
-		// we use runelite.launcher.reflect to signal to use the reflect launch mode from packr
+		// we use runelite.launcher.reflect to signal to use the reflect launch mode from the debug plugin
 		if ("true".equals(System.getProperty("runelite.launcher.reflect")))
 		{
 			launchMode = LaunchMode.REFLECT;

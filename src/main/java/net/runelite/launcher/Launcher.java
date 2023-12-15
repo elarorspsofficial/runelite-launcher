@@ -233,6 +233,7 @@ public class Launcher
 
 			log.info(SERVER_NAME + " Launcher version {}", LauncherProperties.getVersion());
 			log.info("Launcher configuration:" + System.lineSeparator() + "{}", settings.configurationStr());
+			log.info("OS name: {}, version: {}, arch: {}", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
 			log.info("Using hardware acceleration mode: {}", hardwareAccelMode);
 
 			// java2d properties have to be set prior to the graphics environment startup
@@ -401,6 +402,12 @@ public class Launcher
 			}
 			else
 			{
+				if (System.getenv("APPIMAGE") != null)
+				{
+					// java.home is in the appimage, so we can never use the jvm launcher
+					throw new RuntimeException("JVM launcher is not supported from the appimage");
+				}
+
 				// launch mode JVM or AUTO outside of packr
 				log.debug("Using launch mode: JVM");
 				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
@@ -578,6 +585,11 @@ public class Launcher
 			{
 				hash = null;
 			}
+			catch (IOException ex)
+			{
+				dest.delete();
+				hash = null;
+			}
 
 			if (Objects.equals(hash, artifact.getHash()))
 			{
@@ -599,9 +611,9 @@ public class Launcher
 					{
 						oldhash = hash(old);
 					}
-					catch (FileNotFoundException ex)
+					catch (IOException ex)
 					{
-						oldhash = null;
+						continue;
 					}
 
 					// Check if old file is valid

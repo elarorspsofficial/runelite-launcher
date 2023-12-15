@@ -2,59 +2,84 @@
 
 set -e
 
-PACKR_VERSION="runelite-1.7"
-PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
+APPBASE="build/macos-aarch64/RuneLite.app"
 
-SIGNING_IDENTITY="F60F427F725F23E7224489A912A0D1661A129C48"
-
-source .jdk-versions.sh
-
-if ! [ -f mac_aarch64_jre.tar.gz ] ; then
-    curl -Lo mac_aarch64_jre.tar.gz $MAC_AARCH64_LINK
-fi
-
-echo "$MAC_AARCH64_CHKSUM  mac_aarch64_jre.tar.gz" | shasum -c
-
-# packr requires a "jdk" and pulls the jre from it - so we have to place it inside
-# the jdk folder at jre/
-if ! [ -d osx-aarch64-jdk ] ; then
-    tar zxf mac_aarch64_jre.tar.gz
-    mkdir osx-aarch64-jdk
-    mv jdk-$MAC_AARCH64_VERSION-jre osx-aarch64-jdk/jre
-
-    pushd osx-aarch64-jdk/jre
-    # Move JRE out of Contents/Home/
-    mv Contents/Home/* .
-    # Remove unused leftover folders
-    rm -rf Contents
+build() {
+    pushd native
+    cmake -DCMAKE_OSX_ARCHITECTURES=arm64 -B build-aarch64 .
+    cmake --build build-aarch64 --config Release
     popd
-fi
 
-if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
-    curl -Lo packr_${PACKR_VERSION}.jar \
-        https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
-fi
+    source .jdk-versions.sh
 
-echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | shasum -c
+    rm -rf build/macos-aarch64
+    mkdir -p build/macos-aarch64
 
-java -jar packr_${PACKR_VERSION}.jar \
-	packr/macos-aarch64-config.json
+    if ! [ -f mac_aarch64_jre.tar.gz ] ; then
+        curl -Lo mac_aarch64_jre.tar.gz $MAC_AARCH64_LINK
+    fi
 
-cp target/filtered-resources/Info.plist native-osx-aarch64/Zenyte.app/Contents
+    echo "$MAC_AARCH64_CHKSUM  mac_aarch64_jre.tar.gz" | shasum -c
 
-echo Setting world execute permissions on Zenyte
-pushd native-osx-aarch64/Zenyte.app
-chmod g+x,o+x Contents/MacOS/Zenyte
-popd
+    mkdir -p $APPBASE/Contents/{MacOS,Resources}
 
-codesign -f --entitlements osx/signing.entitlements --options runtime native-osx-aarch64/Zenyte.app || true
+    cp native/build-aarch64/src/RuneLite $APPBASE/Contents/MacOS/
+    cp target/RuneLite.jar $APPBASE/Contents/Resources/
+    cp packr/macos-aarch64-config.json $APPBASE/Contents/Resources/config.json
+    cp target/filtered-resources/Info.plist $APPBASE/Contents/
+    cp osx/runelite.icns $APPBASE/Contents/Resources/icons.icns
 
-# create-dmg exits with an error code due to no code signing, but is still okay
-create-dmg native-osx-aarch64/Zenyte.app native-osx-aarch64/ || true
+    tar zxf mac_aarch64_jre.tar.gz
+    mkdir $APPBASE/Contents/Resources/jre
+    mv jdk-$MAC_AARCH64_VERSION-jre/Contents/Home/* $APPBASE/Contents/Resources/jre
 
-mv native-osx-aarch64/Zenyte\ *.dmg native-osx-aarch64/Zenyte-aarch64.dmg
+    echo Setting world execute permissions on RuneLite
+    pushd $APPBASE
+    chmod g+x,o+x Contents/MacOS/RuneLite
+    popd
 
-# Notarize app
-if xcrun notarytool submit native-osx-aarch64/Zenyte-aarch64.dmg --wait --keychain-profile "07c13e1cb5" ; then
-    xcrun stapler staple native-osx-aarch64/Zenyte-aarch64.dmg
-fi
+    otool -l $APPBASE/Contents/MacOS/RuneLite
+}
+
+dmg() {
+    SIGNING_IDENTITY="Developer ID Application"
+    codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --options runtime $APPBASE || true
+
+    # create-dmg exits with an error code due to no code signing, but is still okay
+    create-dmg $APPBASE . || true
+    mv RuneLite\ *.dmg RuneLite-aarch64.dmg
+
+    # dump for CI
+    hdiutil imageinfo RuneLite-aarch64.dmg
+
+    if ! hdiutil imageinfo RuneLite-aarch64.dmg | grep -q "Format: ULFO" ; then
+        echo Format of dmg is not ULFO
+        exit 1
+    fi
+
+    if ! hdiutil imageinfo RuneLite-aarch64.dmg | grep -q "Apple_HFS" ; then
+        echo Filesystem of dmg is not Apple_HFS
+        exit 1
+    fi
+
+    # Notarize app
+    if xcrun notarytool submit RuneLite-aarch64.dmg --wait --keychain-profile "AC_PASSWORD" ; then
+        xcrun stapler staple RuneLite-aarch64.dmg
+    fi
+}
+
+while test $# -gt 0; do
+  case "$1" in
+    --build)
+      build
+      shift
+      ;;
+    --dmg)
+      dmg
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
