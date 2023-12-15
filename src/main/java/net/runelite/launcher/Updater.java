@@ -25,20 +25,6 @@
 package net.runelite.launcher;
 
 import com.google.common.escape.Escapers;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.CopyOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 import net.runelite.launcher.beans.Update;
@@ -47,11 +33,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
@@ -63,20 +47,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.LAUNCHER_EXECUTABLE_NAME_OSX;
-import static net.runelite.launcher.Launcher.LAUNCHER_EXECUTABLE_NAME_WIN;
-import static net.runelite.launcher.Launcher.compareVersion;
-import static net.runelite.launcher.Launcher.download;
-import static net.runelite.launcher.Launcher.regQueryString;
-import net.runelite.launcher.beans.Bootstrap;
-import net.runelite.launcher.beans.Update;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import static net.runelite.launcher.Constants.SERVER_NAME;
 import static net.runelite.launcher.Launcher.*;
@@ -111,8 +81,8 @@ class Updater
 		Path path = Paths.get(command.get());
 
 		// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-		// causing current.info().command() to return /Applications/RuneLite.app/Contents/Resources/./RuneLite
-		// despite the executable really being at /Applications/RuneLite.app/Contents/MacOS/RuneLite
+		// causing current.info().command() to return /Applications/Zenyte.app/Contents/Resources/./Zenyte
+		// despite the executable really being at /Applications/Zenyte.app/Contents/MacOS/Zenyte
 		path = path.normalize()
 			.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
 			.normalize();
@@ -363,7 +333,7 @@ class Updater
 			return;
 		}
 
-		// the installer kills running RuneLite processes, so check that there are no others running
+		// the installer kills running Zenyte processes, so check that there are no others running
 		List<ProcessHandle> allProcesses = ProcessHandle.allProcesses().collect(Collectors.toList());
 		for (ProcessHandle ph : allProcesses)
 		{

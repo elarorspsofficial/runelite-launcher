@@ -21,18 +21,18 @@ fi
 
 echo "$WIN64_CHKSUM win64_jre.zip" | sha256sum -c
 
-cp native/build-x64/src/Release/RuneLite.exe build/win-x64/
-cp target/RuneLite.jar build/win-x64/
+cp native/build-x64/src/Release/Zenyte.exe build/win-x64/
+cp target/Zenyte.jar build/win-x64/
 cp packr/win-x64-config.json build/win-x64/config.json
 cp liblauncher/build64/Release/launcher_amd64.dll build/win-x64/
 
 unzip win64_jre.zip
 mv jdk-$WIN64_VERSION-jre build/win-x64/jre
 
-echo RuneLite.exe 64bit sha256sum
-sha256sum build/win-x64/RuneLite.exe
+echo Zenyte.exe 64bit sha256sum
+sha256sum build/win-x64/Zenyte.exe
 
-dumpbin //HEADERS build/win-x64/RuneLite.exe
+dumpbin //HEADERS build/win-x64/Zenyte.exe
 
 # We use the filtered iss file
 iscc target/filtered-resources/runelite.iss

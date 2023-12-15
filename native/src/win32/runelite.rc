@@ -11,9 +11,9 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription",  "RuneLite"
-            VALUE "OriginalFilename", "RuneLite.exe"
-            VALUE "ProductName",      "RuneLite Launcher"
+            VALUE "FileDescription",  "Zenyte"
+            VALUE "OriginalFilename", "Zenyte.exe"
+            VALUE "ProductName",      "Zenyte Launcher"
         END
     END
 

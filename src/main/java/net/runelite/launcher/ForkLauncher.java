@@ -24,6 +24,9 @@
  */
 package net.runelite.launcher;
 
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.launcher.beans.Bootstrap;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,8 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.launcher.beans.Bootstrap;
 
 @Slf4j
 class ForkLauncher
@@ -87,8 +88,8 @@ class ForkLauncher
 			case MacOS:
 				path = Paths.get(current.info().command().get());
 				// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-				// causing current.info().command() to return /Applications/RuneLite.app/Contents/Resources/./RuneLite
-				// despite the executable really being at /Applications/RuneLite.app/Contents/MacOS/RuneLite
+				// causing current.info().command() to return /Applications/Zenyte.app/Contents/Resources/./Zenyte
+				// despite the executable really being at /Applications/Zenyte.app/Contents/MacOS/Zenyte
 				path = path.normalize()
 					.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
 					.normalize();
