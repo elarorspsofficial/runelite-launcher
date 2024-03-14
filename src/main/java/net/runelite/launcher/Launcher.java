@@ -35,7 +35,6 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
-import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
@@ -52,9 +51,10 @@ import javax.swing.*;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -93,6 +93,8 @@ public class Launcher
 	private static final String USER_AGENT = SERVER_NAME + "/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = SERVER_NAME + ".exe";
 	static final String LAUNCHER_EXECUTABLE_NAME_OSX = SERVER_NAME;
+
+	private static HttpClient httpClient;
 
 	public static void main(String[] args)
 	{
@@ -242,11 +244,18 @@ public class Launcher
 			if (settings.isSkipTlsVerification())
 			{
 				TrustManagerUtil.setupInsecureTrustManager();
+				// This is the only way to disable hostname verification with HttpClient - https://stackoverflow.com/a/52995420
+				System.setProperty("jdk.internal.httpclient.disableHostnameVerification", Boolean.TRUE.toString());
 			}
 			else
 			{
 				TrustManagerUtil.setupTrustManager();
 			}
+
+			// setup http client after the default SSLContext is set
+			httpClient = HttpClient.newBuilder()
+				.followRedirects(HttpClient.Redirect.ALWAYS)
+				.build();
 
 			if (postInstall)
 			{
@@ -445,34 +454,55 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-		URL u = new URL(LauncherProperties.getBootstrap());
-		URL signatureUrl = new URL(LauncherProperties.getBootstrapSig());
+		HttpRequest bootstrapReq = HttpRequest.newBuilder()
+			.uri(URI.create(LauncherProperties.getBootstrap()))
+			.header("User-Agent", USER_AGENT)
+			.GET()
+			.build();
 
-		URLConnection conn = u.openConnection();
-		URLConnection signatureConn = signatureUrl.openConnection();
+		HttpRequest bootstrapSigReq = HttpRequest.newBuilder()
+			.uri(URI.create(LauncherProperties.getBootstrapSig()))
+			.header("User-Agent", USER_AGENT)
+			.GET()
+			.build();
 
-		conn.setRequestProperty("User-Agent", USER_AGENT);
-		signatureConn.setRequestProperty("User-Agent", USER_AGENT);
+		HttpResponse<byte[]> bootstrapResp, bootstrapSigResp;
 
-		try (InputStream i = conn.getInputStream();
-			/*InputStream signatureIn = signatureConn.getInputStream()*/)
+		try
 		{
-			byte[] bytes = ByteStreams.toByteArray(i);
-			//byte[] signature = ByteStreams.toByteArray(signatureIn);
-
-			/*Certificate certificate = getCertificate();
-			Signature s = Signature.getInstance("SHA256withRSA");
-			s.initVerify(certificate);
-			s.update(bytes);
-
-			if (!s.verify(signature))
-			{
-				throw new VerificationException("Unable to verify bootstrap signature");
-			}*/
-
-			Gson g = new Gson();
-			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
+			bootstrapResp = httpClient.send(bootstrapReq, HttpResponse.BodyHandlers.ofByteArray());
+			bootstrapSigResp = httpClient.send(bootstrapSigReq, HttpResponse.BodyHandlers.ofByteArray());
 		}
+		catch (InterruptedException ex)
+		{
+			throw new IOException(ex);
+		}
+
+		if (bootstrapResp.statusCode() != 200)
+		{
+			throw new IOException("Unable to download bootstrap (status code " + bootstrapResp.statusCode() + "): " + new String(bootstrapResp.body()));
+		}
+
+		if (bootstrapSigResp.statusCode() != 200)
+		{
+			throw new IOException("Unable to download bootstrap signature (status code " + bootstrapSigResp.statusCode() + "): " + new String(bootstrapSigResp.body()));
+		}
+
+		final byte[] bytes = bootstrapResp.body();
+		//final byte[] signature = bootstrapSigResp.body();
+
+		/*Certificate certificate = getCertificate();
+		Signature s = Signature.getInstance("SHA256withRSA");
+		s.initVerify(certificate);
+		s.update(bytes);
+
+		if (!s.verify(signature))
+		{
+			throw new VerificationException("Unable to verify bootstrap signature");
+		}*/
+
+		Gson g = new Gson();
+		return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
 	}
 
 	private static boolean jvmOutdated(Bootstrap bootstrap)
@@ -827,21 +857,30 @@ public class Launcher
 
 	static void download(String path, String hash, IntConsumer progress, OutputStream out) throws IOException, VerificationException
 	{
-		URL url = new URL(path);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestProperty("User-Agent", USER_AGENT);
-		conn.getResponseCode();
+		HttpRequest request = HttpRequest.newBuilder()
+			.uri(URI.create(path))
+			.header("User-Agent", USER_AGENT)
+			.GET()
+			.build();
 
-		InputStream err = conn.getErrorStream();
-		if (err != null)
+		HttpResponse<InputStream> response;
+		try
 		{
-			err.close();
-			throw new IOException("Unable to download " + path + " - " + conn.getResponseMessage());
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+		}
+		catch (InterruptedException ex)
+		{
+			throw new IOException(ex);
+		}
+
+		if (response.statusCode() != 200)
+		{
+			throw new IOException("Unable to download " + path + " (status code " + response.statusCode() + ")");
 		}
 
 		int downloaded = 0;
 		HashingOutputStream hout = new HashingOutputStream(Hashing.sha256(), out);
-		try (InputStream in = conn.getInputStream())
+		try (InputStream in = response.body())
 		{
 			int i;
 			byte[] buffer = new byte[1024 * 1024];

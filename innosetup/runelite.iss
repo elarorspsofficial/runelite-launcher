@@ -12,7 +12,7 @@ ArchitecturesAllowed=x64
 PrivilegesRequired=lowest
 
 WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
-SetupIconFile=${basedir}/runelite.ico
+SetupIconFile=${basedir}/innosetup/runelite.ico
 UninstallDisplayIcon={app}\Zenyte.exe
 
 Compression=lzma2
@@ -25,9 +25,9 @@ OutputBaseFilename=ZenyteSetup
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\build\win-x64\Zenyte.exe"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\Zenyte.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "${basedir}\build\win-x64\Zenyte.jar"; DestDir: "{app}"
-Source: "${basedir}\build\win-x64\launcher_amd64.dll"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\launcher_amd64.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "${basedir}\build\win-x64\config.json"; DestDir: "{app}"
 Source: "${basedir}\build\win-x64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
