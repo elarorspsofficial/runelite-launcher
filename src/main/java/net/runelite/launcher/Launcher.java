@@ -36,7 +36,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.gson.Gson;
-import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -67,18 +66,6 @@ import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
-import javax.swing.SwingUtilities;
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.launcher.beans.Artifact;
-import net.runelite.launcher.beans.Bootstrap;
-import net.runelite.launcher.beans.Diff;
-import net.runelite.launcher.beans.Platform;
-import org.slf4j.LoggerFactory;
-
-import static net.runelite.launcher.Constants.SERVER_NAME;
 
 import static net.runelite.launcher.Constants.*;
 
@@ -460,18 +447,11 @@ public class Launcher
 			.GET()
 			.build();
 
-		HttpRequest bootstrapSigReq = HttpRequest.newBuilder()
-			.uri(URI.create(LauncherProperties.getBootstrapSig()))
-			.header("User-Agent", USER_AGENT)
-			.GET()
-			.build();
-
-		HttpResponse<byte[]> bootstrapResp, bootstrapSigResp;
+		HttpResponse<byte[]> bootstrapResp;
 
 		try
 		{
 			bootstrapResp = httpClient.send(bootstrapReq, HttpResponse.BodyHandlers.ofByteArray());
-			bootstrapSigResp = httpClient.send(bootstrapSigReq, HttpResponse.BodyHandlers.ofByteArray());
 		}
 		catch (InterruptedException ex)
 		{
@@ -483,23 +463,7 @@ public class Launcher
 			throw new IOException("Unable to download bootstrap (status code " + bootstrapResp.statusCode() + "): " + new String(bootstrapResp.body()));
 		}
 
-		if (bootstrapSigResp.statusCode() != 200)
-		{
-			throw new IOException("Unable to download bootstrap signature (status code " + bootstrapSigResp.statusCode() + "): " + new String(bootstrapSigResp.body()));
-		}
-
 		final byte[] bytes = bootstrapResp.body();
-		//final byte[] signature = bootstrapSigResp.body();
-
-		/*Certificate certificate = getCertificate();
-		Signature s = Signature.getInstance("SHA256withRSA");
-		s.initVerify(certificate);
-		s.update(bytes);
-
-		if (!s.verify(signature))
-		{
-			throw new VerificationException("Unable to verify bootstrap signature");
-		}*/
 
 		Gson g = new Gson();
 		return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);

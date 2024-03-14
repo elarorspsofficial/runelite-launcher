@@ -24,10 +24,11 @@
  */
 package net.runelite.launcher;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LauncherProperties
@@ -38,7 +39,6 @@ public class LauncherProperties
 	private static final String DNS_CHANGE_LINK = "runelite.dnschange.link";
 	private static final String DOWNLOAD_LINK = "runelite.download.link";
 	private static final String BOOTSTRAP = "runelite.bootstrap";
-	private static final String BOOTSTRAPSIG = "runelite.bootstrapsig";
 	private static final String MAIN = "runelite.main";
 
 	private static final Properties properties = new Properties();
@@ -90,11 +90,6 @@ public class LauncherProperties
 	public static String getBootstrap()
 	{
 		return properties.getProperty(BOOTSTRAP);
-	}
-
-	public static String getBootstrapSig()
-	{
-		return properties.getProperty(BOOTSTRAPSIG);
 	}
 
 	public static String getMain()
