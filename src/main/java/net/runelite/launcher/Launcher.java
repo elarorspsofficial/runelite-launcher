@@ -76,12 +76,14 @@ public class Launcher
 	static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-	private static final String USER_AGENT = SERVER_NAME + "/" + LauncherProperties.getVersion();
+	static final String USER_AGENT = SERVER_NAME + "/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = SERVER_NAME + ".exe";
 	static final String LAUNCHER_EXECUTABLE_NAME_OSX = SERVER_NAME;
 	static boolean nativesLoaded;
 
-	private static HttpClient httpClient;
+	static HttpClient httpClient;
+
+	private static final boolean JAR_HASH_MODE = false;
 
 	public static void main(String[] args)
 	{
@@ -369,27 +371,37 @@ public class Launcher
 			// Clean out old artifacts from the repository
 			clean(artifacts);
 
-			try
-			{
-				download(artifacts, settings.isNodiffs());
-			}
-			catch (IOException ex)
-			{
-				log.error("unable to download artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
-				return;
-			}
+			if (JAR_HASH_MODE) {
+				try
+				{
+					download(artifacts, settings.isNodiffs());
+				}
+				catch (IOException ex)
+				{
+					log.error("unable to download artifacts", ex);
+					SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
+					return;
+				}
 
-			SplashScreen.stage(.80, null, "Verifying");
-			try
-			{
-				verifyJarHashes(artifacts);
-			}
-			catch (VerificationException ex)
-			{
-				log.error("Unable to verify artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
-				return;
+				SplashScreen.stage(.80, null, "Verifying");
+				try
+				{
+					verifyJarHashes(artifacts);
+				}
+				catch (VerificationException ex)
+				{
+					log.error("Unable to verify artifacts", ex);
+					SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
+					return;
+				}
+			} else {
+				try {
+					DownloadSimple.download(artifacts);
+				} catch (final IOException ex) {
+					log.error("unable to download artifacts", ex);
+					SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
+					return;
+				}
 			}
 
 			final Collection<String> clientArgs = getClientArgs(settings);
