@@ -66,32 +66,32 @@ enum DownloadSimple {
                 } catch (final Exception ex) {
                     log.error("Error getting size of file \"" + artifactFilePath + "\"", ex);
                 }
+            }
 
-                try {
-                    final List<String> contentLengthHeaders = response
-                            .headers()
-                            .allValues("Content-Length");
-                    if (contentLengthHeaders.isEmpty()) {
-                        log.warn("Content-Length header not found for artifact path \"{}\"", artifactNetPath);
-                    } else {
-                        final String contentLength = contentLengthHeaders.get(0);
-                        log.debug("Artifact path \"{}\" content length file size: \"{}\"",
-                                artifactNetPath, contentLength);
+            try {
+                final List<String> contentLengthHeaders = response
+                        .headers()
+                        .allValues("Content-Length");
+                if (contentLengthHeaders.isEmpty()) {
+                    log.warn("Content-Length header not found for artifact path \"{}\"", artifactNetPath);
+                } else {
+                    final String contentLength = contentLengthHeaders.get(0);
+                    log.debug("Artifact path \"{}\" content length file size: \"{}\"",
+                            artifactNetPath, contentLength);
 
-                        netSize = Long.parseLong(contentLength);
+                    netSize = Long.parseLong(contentLength);
 
-                        if (diskSize == netSize) {
-                            upToDate = true;
-                        }
-
-                        log.debug("Artifact \"{}\" - disk size: {}, net size: {}, up-to-date: {}",
-                                artifactName,
-                                diskSize, netSize,
-                                upToDate);
+                    if (diskSize == netSize) {
+                        upToDate = true;
                     }
-                } catch (final Exception ex) {
-                    log.error("Error getting content length header for artifact path \"" + artifactNetPath + "\"", ex);
+
+                    log.debug("Artifact \"{}\" - disk size: {}, net size: {}, up-to-date: {}",
+                            artifactName,
+                            diskSize, netSize,
+                            upToDate);
                 }
+            } catch (final Exception ex) {
+                log.error("Error getting content length header for artifact path \"" + artifactNetPath + "\"", ex);
             }
 
             if (upToDate) {
