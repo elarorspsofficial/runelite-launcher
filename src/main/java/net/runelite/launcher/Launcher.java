@@ -85,8 +85,10 @@ public class Launcher
 
 	private static final boolean JAR_HASH_MODE = false;
 
-	public static void main(String[] args)
+	private static OptionSet parseArgs(String[] args)
 	{
+		args = parseApplicationURI(args);
+
 		OptionParser parser = new OptionParser(false);
 		parser.allowsUnrecognizedOptions();
 		parser.accepts("postinstall", "Perform post-install tasks");
@@ -141,6 +143,27 @@ public class Launcher
 			}
 			System.exit(0);
 		}
+
+		return options;
+	}
+
+	private static String[] parseApplicationURI(String[] args)
+	{
+		// runelite-jav://oldschool2.runescape.com:80/jav_config.ws
+		if (args.length > 0 && args[0].startsWith("runelite-jav://"))
+		{
+			log.info("Launched using URI {}", args[0]);
+			return new String[]{
+				"--jav_config", args[0].replace("runelite-jav", "http")
+			};
+		}
+
+		return args;
+	}
+
+	public static void main(String[] args)
+	{
+		final OptionSet options = parseArgs(args);
 
 		if (options.has("configure"))
 		{
@@ -248,7 +271,7 @@ public class Launcher
 
 			if (postInstall)
 			{
-				postInstall();
+				postInstall(settings);
 				return;
 			}
 
@@ -329,7 +352,7 @@ public class Launcher
 			}
 
 			// update packr vmargs to the launcher vmargs from bootstrap.
-			PackrConfig.updateLauncherArgs(bootstrap);
+			PackrConfig.updateLauncherArgs(bootstrap, settings);
 
 			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
 			{
@@ -572,6 +595,11 @@ public class Launcher
 	private static List<String> getJvmArgs(LauncherSettings settings)
 	{
 		var args = new ArrayList<>(settings.jvmArguments);
+
+		if (settings.ipv4)
+		{
+			args.add("-Djava.net.preferIPv4Stack=true");
+		}
 
 		var envArgs = System.getenv("RUNELITE_VMARGS");
 		if (!Strings.isNullOrEmpty(envArgs))
@@ -901,7 +929,7 @@ public class Launcher
 		return Runtime.version().feature() >= 16;
 	}
 
-	private static void postInstall()
+	private static void postInstall(LauncherSettings settings)
 	{
 		Bootstrap bootstrap;
 		try
@@ -914,7 +942,7 @@ public class Launcher
 			return;
 		}
 
-		PackrConfig.updateLauncherArgs(bootstrap);
+		PackrConfig.updateLauncherArgs(bootstrap, settings);
 
 		log.info("Performed postinstall steps");
 	}
