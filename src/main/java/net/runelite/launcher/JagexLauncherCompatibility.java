@@ -24,13 +24,14 @@
  */
 package net.runelite.launcher;
 
+import lombok.extern.slf4j.Slf4j;
+
+import javax.swing.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.swing.SwingUtilities;
-import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.isProcessElevated;
-import static net.runelite.launcher.Launcher.nativesLoaded;
-import static net.runelite.launcher.Launcher.regDeleteValue;
+
+import static net.runelite.launcher.Constants.SERVER_NAME;
+import static net.runelite.launcher.Launcher.*;
 
 @Slf4j
 class JagexLauncherCompatibility
@@ -55,9 +56,9 @@ class JagexLauncherCompatibility
 			return false;
 		}
 
-		log.error("RuneLite is running with elevated permissions, but the Jagex launcher is not. Privileged processes " +
+		log.error(SERVER_NAME + " is running with elevated permissions, but the Jagex launcher is not. Privileged processes " +
 			"can't have environment variables passed to them from unprivileged processes. This will cause you to be " +
-			"unable to login. Either run RuneLite as a regular user, or run the Jagex launcher as an administrator.");
+			"unable to login. Either run " + SERVER_NAME + " as a regular user, or run the Jagex launcher as an administrator.");
 
 		// attempt to fix this by removing the compatibility settings
 		String command = current.info().command().orElse(null);
@@ -99,11 +100,11 @@ class JagexLauncherCompatibility
 			.map(JagexLauncherCompatibility::pathFilename)
 			.orElse(Launcher.LAUNCHER_EXECUTABLE_NAME_WIN);
 		var sb = new StringBuilder();
-		sb.append("Running RuneLite as an administrator is incompatible with the Jagex launcher.");
+		sb.append("Running " + SERVER_NAME + " as an administrator is incompatible with the Jagex launcher.");
 		if (patched)
 		{
-			sb.append(" RuneLite has attempted to fix this problem by changing the compatibility settings of ").append(command).append('.');
-			sb.append(" Try running RuneLite again.");
+			sb.append(" " + SERVER_NAME + " has attempted to fix this problem by changing the compatibility settings of ").append(command).append('.');
+			sb.append(" Try running " + SERVER_NAME + " again.");
 		}
 		sb.append(" If the problem persists, either run the Jagex launcher as administrator, or change the ")
 			.append(command).append(" compatibility settings to not run as administrator.");

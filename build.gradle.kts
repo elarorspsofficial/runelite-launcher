@@ -35,7 +35,7 @@ repositories {
 
 group = "net.runelite"
 version = "2.7.5-SNAPSHOT"
-description = "RuneLite Launcher"
+description = "Zenyte Launcher"
 
 dependencies {
     implementation(libs.org.slf4j.slf4j.api)
@@ -86,7 +86,7 @@ tasks {
     processResources {
         filesMatching("**/*.properties") {
             val props = if (project.findProperty("RUNELITE_BUILD") as? String == "runelite")
-                arrayOf("runelite_net" to "runelite.net",
+                arrayOf("runelite_net" to "zenyte.com",
                         "runelite_128" to "runelite_128.png",
                         "runelite_splash" to "runelite_splash.png")
             else arrayOf("runelite_net" to "",

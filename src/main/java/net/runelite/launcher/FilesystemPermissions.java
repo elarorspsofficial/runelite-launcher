@@ -25,19 +25,18 @@
 package net.runelite.launcher;
 
 import com.google.common.base.Stopwatch;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.swing.SwingUtilities;
-import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.LAUNCHER_EXECUTABLE_NAME_WIN;
-import static net.runelite.launcher.Launcher.RUNELITE_DIR;
-import static net.runelite.launcher.Launcher.isProcessElevated;
-import static net.runelite.launcher.Launcher.nativesLoaded;
-import static net.runelite.launcher.Launcher.setFileACL;
+
+import static net.runelite.launcher.Constants.SERVER_NAME;
+import static net.runelite.launcher.Launcher.*;
 
 @Slf4j
 class FilesystemPermissions
@@ -60,15 +59,15 @@ class FilesystemPermissions
 		// always when elevated, so attempt to fix the ACLs first.
 		if (elevated)
 		{
-			log.info("RuneLite is running as an administrator. This is not recommended because it can cause the files " +
-					"RuneLite writes to {} to have more strict permissions than would otherwise be required.",
+			log.info(SERVER_NAME + " is running as an administrator. This is not recommended because it can cause the files " +
+							SERVER_NAME + " writes to {} to have more strict permissions than would otherwise be required.",
 				RUNELITE_DIR);
 
 			try
 			{
 				final var sid = Launcher.getUserSID();
-				log.info("RuneLite is updating the ACLs of the files in {} to be: NT AUTHORITY\\SYSTEM, BUILTIN\\Administrators, " +
-						"and {} (your user SID). To avoid this, don't run RuneLite with elevated permissions.",
+				log.info(SERVER_NAME + " is updating the ACLs of the files in {} to be: NT AUTHORITY\\SYSTEM, BUILTIN\\Administrators, " +
+						"and {} (your user SID). To avoid this, don't run " + SERVER_NAME + " with elevated permissions.",
 					RUNELITE_DIR, sid);
 
 				// Files.walk is depth-first, which doesn't work if the permissions on the root don't allow traversal.
@@ -93,12 +92,12 @@ class FilesystemPermissions
 				String message;
 				if (elevated)
 				{
-					message = "Unable to create RuneLite directory " + RUNELITE_DIR + " while elevated. Check your filesystem permissions are correct.";
+					message = "Unable to create " + SERVER_NAME + " directory " + RUNELITE_DIR + " while elevated. Check your filesystem permissions are correct.";
 				}
 				else
 				{
-					message = "Unable to create RuneLite directory " + RUNELITE_DIR + ". Check your filesystem permissions are correct. If you rerun RuneLite" +
-						" as an administrator, RuneLite will attempt to create the directory again and fix its permissions.";
+					message = "Unable to create " + SERVER_NAME+ " directory " + RUNELITE_DIR + ". Check your filesystem permissions are correct. If you rerun " + SERVER_NAME +
+						" as an administrator, " + SERVER_NAME + " will attempt to create the directory again and fix its permissions.";
 				}
 				SwingUtilities.invokeLater(() ->
 				{
@@ -144,7 +143,7 @@ class FilesystemPermissions
 			else
 			{
 				message = "The file permissions of " + RUNELITE_DIR + ", or a file within it, is not correct. Check the logs for more details." +
-					" If you rerun RuneLite as an administrator, RuneLite will attempt to fix the file permissions.";
+					" If you rerun " + SERVER_NAME + " as an administrator, " + SERVER_NAME + " will attempt to fix the file permissions.";
 			}
 			SwingUtilities.invokeLater(() ->
 			{

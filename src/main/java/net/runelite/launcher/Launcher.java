@@ -47,7 +47,14 @@ import net.runelite.launcher.beans.Platform;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.URI;
@@ -61,7 +68,18 @@ import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -315,7 +333,7 @@ public class Launcher
 			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
 			{
 				log.error("unable to create directory {}", REPO_DIR);
-				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create RuneLite directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
+				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create " + SERVER_NAME + " directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
 				return;
 			}
 
