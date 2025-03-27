@@ -28,6 +28,7 @@ import com.google.common.base.MoreObjects;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
+import javax.net.ssl.SSLException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -38,22 +39,14 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.runelite.launcher.Constants.SERVER_NAME;
-
-import javax.net.ssl.SSLException;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
 
 @Slf4j
 public class FatalErrorDialog extends JDialog
