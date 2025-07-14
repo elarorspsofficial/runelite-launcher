@@ -34,7 +34,7 @@ repositories {
 }
 
 group = "net.runelite"
-version = "2.7.5-SNAPSHOT"
+version = "2.7.6-SNAPSHOT"
 description = "Zenyte Launcher"
 
 dependencies {
