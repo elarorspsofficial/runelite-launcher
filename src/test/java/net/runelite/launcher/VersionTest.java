@@ -24,19 +24,20 @@
  */
 package net.runelite.launcher;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VersionTest
 {
 	@Test
 	public void testVersionCompare()
 	{
-		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3") > 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3") == 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2") > 0);
-		Assert.assertTrue(Launcher.compareVersion("2.2.3", "1.2.3") > 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3.1") < 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3.1") < 0);
+		assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3") > 0);
+		assertTrue(Launcher.compareVersion("1.2.3", "1.2.3") == 0);
+		assertTrue(Launcher.compareVersion("1.2.3", "1.2") > 0);
+		assertTrue(Launcher.compareVersion("2.2.3", "1.2.3") > 0);
+		assertTrue(Launcher.compareVersion("1.2.3", "1.2.3.1") < 0);
+		assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3.1") < 0);
 	}
 }

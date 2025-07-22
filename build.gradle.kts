@@ -25,7 +25,7 @@
 
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.8"
 }
 
 repositories {
@@ -38,23 +38,24 @@ version = "2.7.6-SNAPSHOT"
 description = "Jirenyte Launcher"
 
 dependencies {
-    implementation(libs.org.slf4j.slf4j.api)
-    implementation(libs.ch.qos.logback.logback.classic)
-    implementation(libs.net.sf.jopt.simple.jopt.simple)
-    implementation(libs.com.google.code.gson.gson)
-    implementation(libs.com.google.guava.guava) {
+    implementation(libs.slf4j.api)
+    implementation(libs.logback.classic)
+    implementation(libs.jopt.simple)
+    implementation(libs.gson)
+    implementation(libs.guava) {
         // compile time annotations for static analysis in Guava
         // https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-about-guavas-own-dependencies
+        exclude(group = "com.github.spotbugs", module = "spotbugs-annotations")
         exclude(group = "com.google.code.findbugs", module = "jsr305")
         exclude(group = "com.google.errorprone", module = "error_prone_annotations")
         exclude(group = "com.google.j2objc", module = "j2objc-annotations")
         exclude(group = "org.codehaus.mojo", module = "animal-sniffer-annotations")
     }
-    implementation(libs.net.runelite.archive.patcher.archive.patcher.applier)
-    compileOnly(libs.com.google.code.findbugs.jsr305)
-    compileOnly(libs.org.projectlombok.lombok)
-    annotationProcessor(libs.org.projectlombok.lombok)
-    testImplementation(libs.junit.junit)
+    implementation(libs.runelite.archive.patcher.applier)
+    compileOnly(libs.spotbugs.annotations)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    testImplementation(libs.junit)
 }
 
 tasks.withType<JavaCompile> {
@@ -86,15 +87,19 @@ tasks {
     processResources {
         filesMatching("**/*.properties") {
             val props = if (project.findProperty("RUNELITE_BUILD") as? String == "runelite")
-                arrayOf("runelite_net" to "jirenyte.com",
-                        "runelite_128" to "runelite_128.png",
-                        "runelite_splash" to "runelite_splash.png")
-            else arrayOf("runelite_net" to "",
-                    "runelite_128" to "",
-                    "runelite_splash" to "")
+                arrayOf(
+                    "runelite_net" to "jirenyte.com",
+                    "runelite_128" to "runelite_128.png",
+                    "runelite_splash" to "runelite_splash.png"
+                )
+            else arrayOf(
+                "runelite_net" to "",
+                "runelite_128" to "",
+                "runelite_splash" to ""
+            )
             expand(
-                    "project" to project,
-                    *props
+                "project" to project,
+                *props
             )
         }
     }
