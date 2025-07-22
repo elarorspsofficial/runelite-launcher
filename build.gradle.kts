@@ -25,6 +25,7 @@
 
 plugins {
     java
+    application
     id("com.gradleup.shadow") version "8.3.8"
 }
 
@@ -135,6 +136,12 @@ tasks.register<Copy>("filterOsx") {
     expand("project" to project)
 }
 
+val mainClassName = "net.runelite.launcher.Launcher"
+
+application {
+    mainClass.set(mainClassName)
+}
+
 tasks.shadowJar {
     from(sourceSets.main.get().output)
     from(sourceSets.getByName("java8").output)
@@ -143,7 +150,7 @@ tasks.shadowJar {
     }
     archiveFileName.set(project.findProperty("finalName") as String + ".jar")
     manifest {
-        attributes("Main-Class" to "net.runelite.launcher.Launcher")
+        attributes("Main-Class" to mainClassName)
     }
 }
 
