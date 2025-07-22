@@ -1,6 +1,6 @@
 {
   "classPath": [
-    "Zenyte.jar"
+    "Jirenyte.jar"
   ],
   "mainClass": "net.runelite.launcher.Launcher",
   "vmArgs": [

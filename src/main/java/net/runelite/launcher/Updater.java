@@ -35,8 +35,17 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.*;
-import java.nio.file.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -81,8 +90,8 @@ class Updater
 		Path path = Paths.get(command.get());
 
 		// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-		// causing current.info().command() to return /Applications/Zenyte.app/Contents/Resources/./Zenyte
-		// despite the executable really being at /Applications/Zenyte.app/Contents/MacOS/Zenyte
+		// causing current.info().command() to return /Applications/Jirenyte.app/Contents/Resources/./Jirenyte
+		// despite the executable really being at /Applications/Jirenyte.app/Contents/MacOS/Jirenyte
 		path = path.normalize()
 			.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
 			.normalize();
@@ -333,7 +342,7 @@ class Updater
 			return;
 		}
 
-		// the installer kills running Zenyte processes, so check that there are no others running
+		// the installer kills running Jirenyte processes, so check that there are no others running
 		List<ProcessHandle> allProcesses = ProcessHandle.allProcesses().collect(Collectors.toList());
 		for (ProcessHandle ph : allProcesses)
 		{

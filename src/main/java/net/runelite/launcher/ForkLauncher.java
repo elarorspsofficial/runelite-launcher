@@ -88,8 +88,8 @@ class ForkLauncher
 			case MacOS:
 				path = Paths.get(current.info().command().get());
 				// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-				// causing current.info().command() to return /Applications/Zenyte.app/Contents/Resources/./Zenyte
-				// despite the executable really being at /Applications/Zenyte.app/Contents/MacOS/Zenyte
+				// causing current.info().command() to return /Applications/Jirenyte.app/Contents/Resources/./Jirenyte
+				// despite the executable really being at /Applications/Jirenyte.app/Contents/MacOS/Jirenyte
 				path = path.normalize()
 					.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
 					.normalize();
