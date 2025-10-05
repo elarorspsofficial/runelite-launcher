@@ -90,8 +90,8 @@ tasks {
             val props = if (project.findProperty("RUNELITE_BUILD") as? String == "runelite")
                 arrayOf(
                     "runelite_net" to "elaro-ps.com",
-                    "runelite_128" to "runelite_128.png",
-                    "runelite_splash" to "runelite_splash.png"
+                    "runelite_128" to "elaro_128.png",
+                    "runelite_splash" to "elaro_splash.png"
                 )
             else arrayOf(
                 "runelite_net" to "",
