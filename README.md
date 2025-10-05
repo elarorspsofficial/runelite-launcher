@@ -4,7 +4,7 @@ Can be used for any client revision (317, OSRS, 500+, etc.), as well as any Java
 
 ## Usage Guide
 
-- Fork this repository on GitHub
+- Fork this repository on GitHub test
 - Replace all `Jirenyte` (case sensitive) with your server name.
 - Replace all `jirenyte` (case sensitive) with your lowercase server name.
 - Replace `jirenyte.com`/`Jirenyte.com` with your domain name.
